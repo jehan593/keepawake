@@ -1,0 +1,98 @@
+name: Release
+
+# Note: this file existed in the repo's very first commit, which GitHub's Actions indexer
+# sometimes fails to pick up (a known quirk — workflows only reliably register on a push that
+# touches this file after the repo already exists) — see dnsw's identical note.
+#
+# Manually triggered from the Actions tab's "Run workflow" button (or
+# `gh workflow run release.yml -f version=1.2.0`) — there is no automatic trigger on push or tag.
+# Leave the version input blank to auto-bump the patch version from the latest existing GitHub
+# Release (e.g. 1.0.0 -> 1.0.1); if no release exists yet, it defaults to 1.0.0. Fill it in to set
+# an exact version instead (e.g. for a major/minor bump, or to re-run a specific version).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 1.2.0). Leave blank to auto-bump the patch version."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            version="${{ inputs.version }}"
+          else
+            latest=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+            if [ -z "$latest" ]; then
+              version="1.0.0"
+            else
+              latest="${latest#v}"
+              major=$(echo "$latest" | cut -d. -f1)
+              minor=$(echo "$latest" | cut -d. -f2)
+              patch=$(echo "$latest" | cut -d. -f3)
+              version="$major.$minor.$((patch + 1))"
+            fi
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Resolved release version: $version"
+
+      - name: Get commit messages since last release
+        id: commit_message
+        shell: bash
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
+          {
+            echo 'message<<EOF'
+            git log "$RANGE" --pretty='- %s'
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish (self-contained, Native AOT)
+        working-directory: keepawake
+        shell: pwsh
+        # windows-latest ships the C++ Build Tools Native AOT needs (link.exe) but doesn't put
+        # vswhere.exe on PATH by default — only exposes it via $env:VSWHERE_PATH. Without this, the
+        # AOT compiler's MSBuild targets fail with a garbled "'vswhere.exe' is not recognized..."
+        # error baked into the link command line (same gotcha as dnsw's identical step).
+        run: |
+          $env:PATH = "$env:PATH;$env:VSWHERE_PATH"
+          dotnet publish -c Release -r win-x64 -o publish
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        working-directory: installer
+        shell: pwsh
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=${{ steps.version.outputs.version }} keepawake.iss'
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: installer/Output/keepawakeSetup.exe
+          body: ${{ steps.commit_message.outputs.message }}

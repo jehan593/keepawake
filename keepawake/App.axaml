@@ -1,0 +1,20 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Keepawake.App">
+    <Application.Styles>
+        <!-- SimpleTheme gives the tray menu's underlying MenuItem/Flyout controls a working default
+             template — Styles.axaml then overrides just the font/foreground on top of it (see that
+             file's comment for why this reaches the tray menu at all despite there being no window). -->
+        <SimpleTheme/>
+        <StyleInclude Source="avares://keepawake/Theme/Styles.axaml"/>
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://keepawake/Theme/Fonts.axaml"/>
+                <ResourceInclude Source="avares://keepawake/Theme/Colors.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

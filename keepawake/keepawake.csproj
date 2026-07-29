@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Assets\app-on.ico</ApplicationIcon>
+    <AssemblyName>keepawake</AssemblyName>
+    <RootNamespace>Keepawake</RootNamespace>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- asInvoker: SetThreadExecutionState (the one Win32 call this app actually makes) needs no
+         elevation at all, unlike dnsw's netsh/port-53 split — a single unprivileged process is the
+         entire app, no separate service. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!-- Native AOT, same reasoning as dnsw/linker-windows: framework-dependent + PublishSingleFile
+       bundles the whole untrimmed CoreCLR+BCL, AOT publishes a much smaller single native exe. -->
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Simple" Version="11.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\app-on.ico" />
+    <AvaloniaResource Include="Assets\app-off.ico" />
+    <AvaloniaResource Include="Fonts\*.ttf" />
+    <None Include="Assets\generate-icon.ps1" />
+  </ItemGroup>
+
+  <!-- No window ever renders (see App.axaml.cs), so Avalonia never touches the ANGLE/Direct3D GPU
+       path either way, but Avalonia.Win32's package always stages this ~4MB native lib regardless —
+       same dead weight dnsw/linker-windows strip for the identical reason. -->
+  <Target Name="RemoveUnusedAngleNativeLib" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(FileName)%(Extension)' == 'av_libglesv2.dll'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

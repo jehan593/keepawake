@@ -1,0 +1,21 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- keepawake has no window at all — the tray icon's right-click menu is the only surface this
+         ever reaches. On Windows, that menu is a real Avalonia MenuItem/Flyout popup, not OS-native
+         chrome (native menus are only genuinely OS-drawn on macOS/Linux — confirmed via Avalonia
+         maintainer guidance in github.com/AvaloniaUI/Avalonia/discussions/8301: "if you want to style
+         native tray menu on windows, just style MenuItem control").
+
+         Targeting MenuItem directly, not TextBlock: SimpleTheme's MenuItem.xaml renders string headers
+         through an AccessText (for the mnemonic underline), which *is* a TextBlock subclass, but a
+         bare `Style Selector="TextBlock"` only matches the exact type in Avalonia, not subclasses (that
+         needs `:is(TextBlock)`) — so a TextBlock-only selector silently never reaches it. FontFamily is
+         an inherited property and MenuItem's own template never sets it locally, so setting it here on
+         MenuItem itself flows down into that AccessText regardless of the type-matching subtlety. -->
+    <Style Selector="MenuItem">
+        <Setter Property="FontFamily" Value="{DynamicResource MartianMono}"/>
+        <Setter Property="Foreground" Value="{DynamicResource OnSurfaceBrush}"/>
+    </Style>
+
+</Styles>

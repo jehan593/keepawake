@@ -1,0 +1,84 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Same Nord role-mapping and ThemeDictionaries structure as dnsw/linker-windows's Colors.axaml
+         — copied here rather than shared, since these are separate apps/assemblies. keepawake has no
+         window at all, so the only consumer is the tray menu's MenuItem/TextBlock styling (see
+         Styles.axaml) — every role is still filled in for consistency in case that ever changes. -->
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="PrimaryBrush" Color="#FF88C0D0"/>
+            <SolidColorBrush x:Key="OnPrimaryBrush" Color="#FF2E3440"/>
+            <SolidColorBrush x:Key="PrimaryContainerBrush" Color="#FF5E81AC"/>
+            <SolidColorBrush x:Key="OnPrimaryContainerBrush" Color="#FFECEFF4"/>
+
+            <SolidColorBrush x:Key="SecondaryBrush" Color="#FF8FBCBB"/>
+            <SolidColorBrush x:Key="OnSecondaryBrush" Color="#FF2E3440"/>
+            <SolidColorBrush x:Key="SecondaryContainerBrush" Color="#FF434C5E"/>
+            <SolidColorBrush x:Key="OnSecondaryContainerBrush" Color="#FFECEFF4"/>
+
+            <SolidColorBrush x:Key="BackgroundBrush" Color="#FF2E3440"/>
+            <SolidColorBrush x:Key="OnBackgroundBrush" Color="#FFECEFF4"/>
+
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#FF3B4252"/>
+            <SolidColorBrush x:Key="OnSurfaceBrush" Color="#FFD8DEE9"/>
+
+            <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#FF434C5E"/>
+            <SolidColorBrush x:Key="OnSurfaceVariantBrush" Color="#FFD8DEE9"/>
+
+            <SolidColorBrush x:Key="SurfaceContainerLowBrush" Color="#FF2E3440"/>
+            <SolidColorBrush x:Key="SurfaceContainerBrush" Color="#FF3B4252"/>
+            <SolidColorBrush x:Key="SurfaceContainerHighBrush" Color="#FF3B4252"/>
+            <SolidColorBrush x:Key="SurfaceContainerHighestBrush" Color="#FF434C5E"/>
+
+            <SolidColorBrush x:Key="ErrorBrush" Color="#FFBF616A"/>
+            <SolidColorBrush x:Key="OnErrorBrush" Color="#FFECEFF4"/>
+
+            <SolidColorBrush x:Key="SuccessBrush" Color="#FFA3BE8C"/>
+            <SolidColorBrush x:Key="OnSuccessBrush" Color="#FF2E3440"/>
+
+            <SolidColorBrush x:Key="OutlineBrush" Color="#FF4C566A"/>
+            <SolidColorBrush x:Key="OutlineVariantBrush" Color="#FF434C5E"/>
+
+            <SolidColorBrush x:Key="RowHoverBrush" Color="#FF434C5E"/>
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="PrimaryBrush" Color="#FF5E81AC"/>
+            <SolidColorBrush x:Key="OnPrimaryBrush" Color="#FFECEFF4"/>
+            <SolidColorBrush x:Key="PrimaryContainerBrush" Color="#FF88C0D0"/>
+            <SolidColorBrush x:Key="OnPrimaryContainerBrush" Color="#FF2E3440"/>
+
+            <SolidColorBrush x:Key="SecondaryBrush" Color="#FF8FBCBB"/>
+            <SolidColorBrush x:Key="OnSecondaryBrush" Color="#FF2E3440"/>
+            <SolidColorBrush x:Key="SecondaryContainerBrush" Color="#FFE5E9F0"/>
+            <SolidColorBrush x:Key="OnSecondaryContainerBrush" Color="#FF2E3440"/>
+
+            <SolidColorBrush x:Key="BackgroundBrush" Color="#FFECEFF4"/>
+            <SolidColorBrush x:Key="OnBackgroundBrush" Color="#FF2E3440"/>
+
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#FFE5E9F0"/>
+            <SolidColorBrush x:Key="OnSurfaceBrush" Color="#FF3B4252"/>
+
+            <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#FFD8DEE9"/>
+            <SolidColorBrush x:Key="OnSurfaceVariantBrush" Color="#FF3B4252"/>
+
+            <SolidColorBrush x:Key="SurfaceContainerLowBrush" Color="#FFE5E9F0"/>
+            <SolidColorBrush x:Key="SurfaceContainerBrush" Color="#FFD8DEE9"/>
+            <SolidColorBrush x:Key="SurfaceContainerHighBrush" Color="#FFD8DEE9"/>
+            <SolidColorBrush x:Key="SurfaceContainerHighestBrush" Color="#FFD8DEE9"/>
+
+            <SolidColorBrush x:Key="ErrorBrush" Color="#FFBF616A"/>
+            <SolidColorBrush x:Key="OnErrorBrush" Color="#FFECEFF4"/>
+
+            <SolidColorBrush x:Key="SuccessBrush" Color="#FFA3BE8C"/>
+            <SolidColorBrush x:Key="OnSuccessBrush" Color="#FF2E3440"/>
+
+            <SolidColorBrush x:Key="OutlineBrush" Color="#FF4C566A"/>
+            <SolidColorBrush x:Key="OutlineVariantBrush" Color="#FFD8DEE9"/>
+
+            <SolidColorBrush x:Key="RowHoverBrush" Color="#FFE5E9F0"/>
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>
