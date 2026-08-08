@@ -8,7 +8,10 @@
     <ApplicationIcon>Assets\app-on.ico</ApplicationIcon>
     <AssemblyName>keepawake</AssemblyName>
     <RootNamespace>Keepawake</RootNamespace>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- The tray window/menu is hand-rolled Win32 (Native/Win32.cs) — WndProc is exposed to native
+         code via an [UnmanagedCallersOnly] static method turned into a raw function pointer, which
+         needs an unsafe context. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- asInvoker: SetThreadExecutionState (the one Win32 call this app actually makes) needs no
          elevation at all, unlike dnsw's netsh/port-53 split — a single unprivileged process is the
          entire app, no separate service. -->
@@ -24,26 +27,19 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
+  <!-- No Avalonia/Skia/HarfBuzz here on purpose — the tray icon and its context menu are driven
+       directly by Shell_NotifyIcon + an owner-drawn native popup menu (see Native/Win32.cs,
+       Ui/TrayIcon.cs), which is what actually paints the menu shown in the tray (Windows never
+       supplies its own themed chrome for it — see CLAUDE.md's Theme section). That gets the same
+       Nord/Martian-Mono look as before without staging Skia's ~9MB + HarfBuzz's ~1.5MB native
+       libraries for an app that never draws through them. -->
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.2.3" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
-    <PackageReference Include="Avalonia.Themes.Simple" Version="11.2.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\app-on.ico" />
-    <AvaloniaResource Include="Assets\app-off.ico" />
-    <AvaloniaResource Include="Fonts\*.ttf" />
+    <None Include="Assets\app-on.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Assets\app-off.ico" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Assets\generate-icon.ps1" />
+    <!-- Only the regular weight is ever drawn (see Ui/MenuTheme.cs) — martian_mono_bold.ttf/
+         martian_mono_medium.ttf stay in Fonts/ unused, same as they were before this rewrite. -->
+    <None Include="Fonts\martian_mono_regular.ttf" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
-  <!-- No window ever renders (see App.axaml.cs), so Avalonia never touches the ANGLE/Direct3D GPU
-       path either way, but Avalonia.Win32's package always stages this ~4MB native lib regardless —
-       same dead weight dnsw/linker-windows strip for the identical reason. -->
-  <Target Name="RemoveUnusedAngleNativeLib" AfterTargets="ComputeResolvedFilesToPublishList">
-    <ItemGroup>
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(FileName)%(Extension)' == 'av_libglesv2.dll'" />
-    </ItemGroup>
-  </Target>
 
 </Project>
