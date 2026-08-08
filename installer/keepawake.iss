@@ -5,8 +5,8 @@
 ;
 ; Unlike dnsw, there's no Windows Service to stop/reinstall and no admin requirement at all —
 ; keepawake's one Win32 call (SetThreadExecutionState) needs no elevation, ever (see CLAUDE.md), so
-; this installer runs PrivilegesRequired=lowest and has no [Code] section beyond a taskkill so an
-; upgrade isn't blocked by the running exe holding its own file open.
+; this installer runs PrivilegesRequired=lowest and has no [Code] section beyond a taskkill (on both
+; install and uninstall) so a running exe holding its own file open never blocks a file copy/delete.
 
 #define AppName "keepawake"
 ; Overridable from the command line (/DAppVersion=1.2.3) so the manually-triggered CI release
@@ -73,6 +73,20 @@ begin
     // Upgrading over an existing install: a running keepawake.exe holds its own file open, which
     // blocks the [Files] copy below with "DeleteFile failed; code 5. Access is denied." if not
     // closed first. No admin needed for this — same user, same privilege level as Setup itself.
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/IM {#AppExeName} /F', '', SW_HIDE,
+      ewWaitUntilTerminated, ResultCode);
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  ResultCode: Integer;
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    // Same problem as the install-time taskkill above, just on the other end: if the tray icon is
+    // still running when the user uninstalls, keepawake.exe is locked and [UninstallDelete] silently
+    // fails to remove it, leaving a partial install behind.
     Exec(ExpandConstant('{sys}\taskkill.exe'), '/IM {#AppExeName} /F', '', SW_HIDE,
       ewWaitUntilTerminated, ResultCode);
   end;

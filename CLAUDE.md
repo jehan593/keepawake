@@ -144,12 +144,18 @@ visual check too (right-click the icon) — there's no automated way to catch a 
 
 - **`installer/keepawake.iss`** — Inno Setup script, same shape as dnsw's but much shorter: no Windows
   Service to stop/reinstall and `PrivilegesRequired=lowest` throughout (install, uninstall, and the
-  app itself never elevate). The only `[Code]` step is a `taskkill` before the file copy so an
-  upgrade isn't blocked by a running `keepawake.exe` holding its own file open. Its `[Files]` section
-  is a recursive glob over `..\keepawake\publish\*`, so it needs no changes to pick up
-  `Assets\*.ico`/`Fonts\martian_mono_regular.ttf` — those are `CopyToOutputDirectory` items in
-  `keepawake.csproj` (loaded from disk at runtime via `LoadImageW`/`AddFontResourceExW`) rather than
-  resources embedded in the exe, unlike the old `AvaloniaResource` versions of the same files.
+  app itself never elevate). The `[Code]` section is a `taskkill` on *both* `ssInstall` (so an upgrade
+  isn't blocked by a running `keepawake.exe` holding its own file open) and `usUninstall` (same reason,
+  the other direction — without it, uninstalling while the tray icon is running leaves a locked exe
+  behind that `[UninstallDelete]` silently fails to remove). Uninstall deliberately does *not* touch
+  `%AppData%\keepawake\settings.json` — `[UninstallDelete]`/`[Registry]` only remove `{app}` and the
+  Run-key value, so a reinstall (or an uninstall/reinstall cycle) still picks up the user's last
+  on/off + start-with-Windows choice, the same "leave user data behind" convention most installers
+  follow. Its `[Files]` section is a recursive glob over `..\keepawake\publish\*`, so it needs no
+  changes to pick up `Assets\*.ico`/`Fonts\martian_mono_regular.ttf` — those are
+  `CopyToOutputDirectory` items in `keepawake.csproj` (loaded from disk at runtime via
+  `LoadImageW`/`AddFontResourceExW`) rather than resources embedded in the exe, unlike the old
+  `AvaloniaResource` versions of the same files.
   Built via `.github/workflows/release.yml`'s manually-triggered Release workflow
   (`gh workflow run release.yml`), which publishes (Native AOT, same as the local Release config),
   compiles `keepawake.iss` with Inno Setup, and attaches the resulting `keepawakeSetup.exe` to a
