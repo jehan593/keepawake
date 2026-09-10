@@ -61,6 +61,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Publish
+        working-directory: keepawake
         run: dotnet publish -c Release -o publish
 
       - name: Install Inno Setup
