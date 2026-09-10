@@ -1,40 +1,36 @@
+using System;
+using System.IO;
 using System.Text.Json;
 
-namespace Keepawake.Data;
-
-/// <summary>
-/// Flat JSON file at %AppData%\keepawake\settings.json. No cross-process mutex here — the app
-/// enforces single-instance at startup (see Program.cs), so there's never a second process that could
-/// race a write against this one.
-/// </summary>
-public sealed class SettingsStore
+namespace Keepawake.Data
 {
-    private static readonly string DirectoryPath =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "keepawake");
-
-    private static readonly string FilePath = Path.Combine(DirectoryPath, "settings.json");
-
-    public AppSettings Load()
+    public sealed class SettingsStore
     {
-        try
+        private static readonly string DirectoryPath =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "keepawake");
+
+        private static readonly string FilePath = Path.Combine(DirectoryPath, "settings.json");
+
+        public AppSettings Load()
         {
-            var json = File.ReadAllText(FilePath);
-            var settings = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.AppSettings);
-            if (settings is not null) return settings;
-        }
-        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
-        {
-            // Missing file (first run) or corrupt JSON — fall through to defaults rather than crash a
-            // tray-only app the user expects to just work.
+            try
+            {
+                var json = File.ReadAllText(FilePath);
+                var settings = JsonSerializer.Deserialize<AppSettings>(json);
+                if (settings != null) return settings;
+            }
+            catch (Exception ex) when (ex is IOException || ex is JsonException || ex is UnauthorizedAccessException)
+            {
+            }
+
+            return new AppSettings();
         }
 
-        return new AppSettings();
-    }
-
-    public void Save(AppSettings settings)
-    {
-        Directory.CreateDirectory(DirectoryPath);
-        var json = JsonSerializer.Serialize(settings, SettingsJsonContext.Default.AppSettings);
-        File.WriteAllText(FilePath, json);
+        public void Save(AppSettings settings)
+        {
+            Directory.CreateDirectory(DirectoryPath);
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(FilePath, json);
+        }
     }
 }

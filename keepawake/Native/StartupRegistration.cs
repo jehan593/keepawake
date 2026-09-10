@@ -1,35 +1,42 @@
+using System;
 using Microsoft.Win32;
 
-namespace Keepawake.Native;
-
-/// <summary>
-/// "Start with Windows" via the standard per-user Run key, pointed at the plain unprivileged exe — no
-/// separate autostart argument is needed (unlike dnsw's --autostart) since this app never opens a
-/// window on any launch, manual or autostart, so there's no "show the window" behavior to suppress.
-/// </summary>
-public static class StartupRegistration
+namespace Keepawake.Native
 {
-    private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string ValueName = "keepawake";
-
-    public static bool IsEnabled()
+    public static class StartupRegistration
     {
-        using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath);
-        return key?.GetValue(ValueName) is not null;
-    }
+        private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        private const string ValueName = "keepawake";
 
-    public static void SetEnabled(bool enabled)
-    {
-        using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true)
-                         ?? Registry.CurrentUser.CreateSubKey(RunKeyPath);
-        if (enabled)
+        public static bool IsEnabled()
         {
-            var exePath = Environment.ProcessPath ?? Environment.GetCommandLineArgs()[0];
-            key.SetValue(ValueName, $"\"{exePath}\"");
+            using (var key = Registry.CurrentUser.OpenSubKey(RunKeyPath))
+            {
+                return key != null && key.GetValue(ValueName) != null;
+            }
         }
-        else
+
+        public static void SetEnabled(bool enabled)
         {
-            key.DeleteValue(ValueName, throwOnMissingValue: false);
+            var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, true);
+            if (key == null)
+            {
+                key = Registry.CurrentUser.CreateSubKey(RunKeyPath);
+            }
+
+            using (key)
+            {
+                if (enabled)
+                {
+                    var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                    key.SetValue(ValueName, "\"" + exePath + "\"");
+                }
+                else
+                {
+                    try { key.DeleteValue(ValueName); }
+                    catch (ArgumentException) { }
+                }
+            }
         }
     }
 }

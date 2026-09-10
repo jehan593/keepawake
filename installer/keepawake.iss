@@ -1,17 +1,6 @@
-; Inno Setup script for keepawake — packages the self-contained Native AOT publish output
-; (see ../keepawake/publish/, produced by: dotnet publish -c Release -r win-x64 -o publish;
-; SelfContained/PublishAot are persisted directly in keepawake.csproj's Release-only PropertyGroup, so
-; no ad-hoc publish flags are needed here) into a per-user installer.
-;
-; Unlike dnsw, there's no Windows Service to stop/reinstall and no admin requirement at all —
-; keepawake's one Win32 call (SetThreadExecutionState) needs no elevation, ever (see CLAUDE.md), so
-; this installer runs PrivilegesRequired=lowest and has no [Code] section beyond a taskkill (on both
-; install and uninstall) so a running exe holding its own file open never blocks a file copy/delete.
+; Inno Setup script for keepawake — per-user installer, no admin required.
 
 #define AppName "keepawake"
-; Overridable from the command line (/DAppVersion=1.2.3) so the manually-triggered CI release
-; workflow (.github/workflows/release.yml) can stamp the installer with whatever version was typed
-; into (or auto-bumped for) that run — local manual builds with no override still default sensibly.
 #ifndef AppVersion
   #define AppVersion "1.0.0"
 #endif
@@ -59,8 +48,6 @@ Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName} now"; Flags: no
 Type: filesandordirs; Name: "{app}"
 
 [Registry]
-; Cleans up the "Start with Windows" Run-key value StartupRegistration.SetEnabled() writes
-; (Native/StartupRegistration.cs).
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "keepawake"; Flags: deletevalue uninsdeletevalue
 
 [Code]
@@ -70,9 +57,6 @@ var
 begin
   if CurStep = ssInstall then
   begin
-    // Upgrading over an existing install: a running keepawake.exe holds its own file open, which
-    // blocks the [Files] copy below with "DeleteFile failed; code 5. Access is denied." if not
-    // closed first. No admin needed for this — same user, same privilege level as Setup itself.
     Exec(ExpandConstant('{sys}\taskkill.exe'), '/IM {#AppExeName} /F', '', SW_HIDE,
       ewWaitUntilTerminated, ResultCode);
   end;
@@ -84,9 +68,6 @@ var
 begin
   if CurUninstallStep = usUninstall then
   begin
-    // Same problem as the install-time taskkill above, just on the other end: if the tray icon is
-    // still running when the user uninstalls, keepawake.exe is locked and [UninstallDelete] silently
-    // fails to remove it, leaving a partial install behind.
     Exec(ExpandConstant('{sys}\taskkill.exe'), '/IM {#AppExeName} /F', '', SW_HIDE,
       ewWaitUntilTerminated, ResultCode);
   end;

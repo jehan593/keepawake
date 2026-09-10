@@ -1,15 +1,5 @@
 name: Release
 
-# Note: this file existed in the repo's very first commit, which GitHub's Actions indexer
-# sometimes fails to pick up (a known quirk — workflows only reliably register on a push that
-# touches this file after the repo already exists) — see dnsw's identical note.
-#
-# Manually triggered from the Actions tab's "Run workflow" button (or
-# `gh workflow run release.yml -f version=1.2.0`) — there is no automatic trigger on push or tag.
-# Leave the version input blank to auto-bump the patch version from the latest existing GitHub
-# Release (e.g. 1.0.0 -> 1.0.1); if no release exists yet, it defaults to 1.0.0. Fill it in to set
-# an exact version instead (e.g. for a major/minor bump, or to re-run a specific version).
-
 on:
   workflow_dispatch:
     inputs:
@@ -30,7 +20,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
@@ -70,16 +60,8 @@ jobs:
             echo EOF
           } >> "$GITHUB_OUTPUT"
 
-      - name: Publish (self-contained, Native AOT)
-        working-directory: keepawake
-        shell: pwsh
-        # windows-latest ships the C++ Build Tools Native AOT needs (link.exe) but doesn't put
-        # vswhere.exe on PATH by default — only exposes it via $env:VSWHERE_PATH. Without this, the
-        # AOT compiler's MSBuild targets fail with a garbled "'vswhere.exe' is not recognized..."
-        # error baked into the link command line (same gotcha as dnsw's identical step).
-        run: |
-          $env:PATH = "$env:PATH;$env:VSWHERE_PATH"
-          dotnet publish -c Release -r win-x64 -o publish
+      - name: Publish
+        run: dotnet publish -c Release -o publish
 
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
