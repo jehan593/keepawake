@@ -128,7 +128,7 @@ namespace Keepawake.Ui
                 uFlags = Win32.NIF_MESSAGE | Win32.NIF_ICON | Win32.NIF_TIP,
                 uCallbackMessage = Win32.WM_TRAYICON,
                 hIcon = _settings.Enabled ? _onIcon : _offIcon,
-                szTip = _settings.Enabled ? "keepawake \u2014 Screen kept on" : "keepawake \u2014 Off",
+                szTip = _settings.Enabled ? "keepawake \u2014 Keeping screen on" : "keepawake \u2014 Screen will turn off",
                 szInfo = "",
                 szInfoTitle = "",
             };
@@ -154,11 +154,11 @@ namespace Keepawake.Ui
             if (_menuBackBrush != IntPtr.Zero) Win32.DeleteObject(_menuBackBrush);
             _menuBackBrush = backBrush;
 
-            var statusText = _settings.Enabled ? "Screen kept on" : "Off";
+            var statusText = _settings.Enabled ? "Keeping screen on" : "Screen will turn off";
 
             _items = new List<MenuItemDescriptor>
             {
-                new MenuItemDescriptor { Text = statusText, IsEnabled = false },
+                new MenuItemDescriptor { Text = statusText, IsLabel = true },
                 new MenuItemDescriptor { IsSeparator = true },
                 new MenuItemDescriptor { Text = "Keep screen on", IsChecked = _settings.Enabled, OnClick = ToggleEnabled },
                 new MenuItemDescriptor { IsSeparator = true },
@@ -247,7 +247,7 @@ namespace Keepawake.Ui
 
                 Win32.SelectObject(hdc, _font);
                 Win32.SetBkMode(hdc, Win32.TRANSPARENT);
-                Win32.SetTextColor(hdc, item.IsEnabled ? MenuTheme.Text : MenuTheme.DisabledText);
+                Win32.SetTextColor(hdc, item.IsLabel ? MenuTheme.DimText : item.IsEnabled ? MenuTheme.Text : MenuTheme.DisabledText);
 
                 if (item.IsChecked) DrawCheckmark(hdc, rect);
 
@@ -344,6 +344,7 @@ namespace Keepawake.Ui
         {
             public string Text = "";
             public bool IsSeparator;
+            public bool IsLabel;
             public bool IsEnabled = true;
             public bool IsChecked;
             public int CommandId;

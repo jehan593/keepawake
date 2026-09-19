@@ -1,8 +1,6 @@
 Add-Type -AssemblyName System.Drawing
 
-# Same palette and background treatment as dnsw's tray icon (Nord0 square, Nord8/Nord3 glyph swap for
-# on/off) — this app has no window to theme, so the icon is the one visual surface worth keeping
-# consistent with dnsw's look.
+# Desktop icon: Nord0 rounded square with a Nord9 (primary accent) monitor glyph on, Nord3 off.
 $bgColor = [System.Drawing.Color]::FromArgb(255, 0x2E, 0x34, 0x40)   # nord0
 
 function New-RoundedRectPath([single]$x, [single]$y, [single]$w, [single]$h, [single]$radius) {
@@ -101,5 +99,5 @@ function Write-Ico([string]$path, [System.Drawing.Color]$fgColor) {
     Write-Output "Wrote $path"
 }
 
-Write-Ico "$PSScriptRoot\app-on.ico" ([System.Drawing.Color]::FromArgb(255, 0x88, 0xC0, 0xD0))   # nord8
+Write-Ico "$PSScriptRoot\app-on.ico" ([System.Drawing.Color]::FromArgb(255, 0x81, 0xA1, 0xC1))   # nord9
 Write-Ico "$PSScriptRoot\app-off.ico" ([System.Drawing.Color]::FromArgb(255, 0x4C, 0x56, 0x6A))  # nord3
